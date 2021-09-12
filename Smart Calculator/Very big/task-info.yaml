@@ -1,0 +1,484 @@
+type: edu
+custom_name: stage8
+files:
+- name: src/calculator/Main.java
+  visible: true
+  text: |
+    package calculator;
+
+    import java.util.Scanner;
+
+    public class Main {
+
+        public static void main(String[] args) {
+            Scanner scanner = new Scanner(System.in);
+            // put your code here
+        }
+    }
+  learner_created: false
+- name: test/Test.java
+  visible: false
+  text: |
+    import org.hyperskill.hstest.stage.StageTest;
+    import org.hyperskill.hstest.testcase.CheckResult;
+    import org.hyperskill.hstest.testcase.TestCase;
+    import org.hyperskill.hstest.testing.TestedProgram;
+
+    import java.util.Arrays;
+    import java.util.List;
+
+    public class Test extends StageTest<String> {
+        @Override
+        public List<TestCase<String>> generate() {
+            return Arrays.asList(
+                    new TestCase<String>().setDynamicTesting(() -> {
+                        TestedProgram main = new TestedProgram();
+
+                        // tests of functionality of previous steps
+                        main.start();
+
+                        // test of /help
+                        String output = main.execute("/help").trim();
+                        if (output.length() < 4) {
+                            return CheckResult.wrong("It seems like there was no any \"help\" message.");
+                        }
+
+                        // input empty string
+                        output = main.execute("");
+                        if (output.length() != 0) {
+                            return CheckResult.wrong("Incorrect response to an empty string. " +
+                                    "The program should not print anything.");
+                        }
+
+                        // testing basic assignment
+                        output = main.execute("n = 32");
+                        if (output.length() != 0) {
+                            return CheckResult.wrong("Unexpected reaction after assignment." +
+                                    "The program should not print anything in this case.");
+                        }
+
+                        // testing a big amount of numbers
+                        output = main.execute("33 + 20 + 11 + 49 - 32 - 9 + 1 - 80 + 4").trim();
+                        if (!output.equals("-3")) {
+                            return CheckResult.wrong("The program cannot process addition and subtraction operations correctly.");
+                        }
+
+                        // the same with a variable
+                        output = main.execute("33 + 20 + 11 + 49 - n - 9 + 1 - 80 + 4").trim();
+                        if (!output.equals("-3")) {
+                            return CheckResult.wrong("The program cannot process addition and subtraction operations correctly.");
+                        }
+
+
+                        output = main.execute("c = n \nc = 2");
+                        if (output.length() != 0) {
+                            return CheckResult.wrong("Unexpected reaction after assignment." +
+                                    "The program should not print anything in this case.");
+                        }
+
+                        // check value
+                        output = main.execute("  c  ").trim();
+                        if (!output.equals("2")) {
+                            return CheckResult.wrong("The variable stores not a correct value." +
+                                    "May be the program could not assign the value of one variable to another one.");
+                        }
+
+                        // the sum of the numbers is zero
+                        output = main.execute("11 - 13 + c").trim();
+                        if (!output.equals("0")) {
+                            return CheckResult.wrong("The problem when sum is equal to 0 has occurred.");
+                        }
+
+                        // test of multiple operations
+                        output = main.execute("5 --- 2 ++++++ 4 -- 2 ---- 1").trim();
+                        if (!output.equals("10")) {
+                            return CheckResult.wrong("The program cannot process multiple operations with several operators.");
+                        }
+
+                        // test of a nonexistent command
+                        output = main.execute("/start").trim().toLowerCase();
+                        if (!output.startsWith("unknown")) {
+                            return CheckResult.wrong("The program should print \"Unknown command\" " +
+                                    "when a nonexistent command is entered.");
+                        }
+
+                        // testing invalid variable name
+                        output = main.execute("var1 = 1").trim().toLowerCase();
+                        if (!output.startsWith("invalid")) {
+                            return CheckResult.wrong("The name of variable should contain only Latin letters.");
+                        }
+
+                        // testing invalid value
+                        output = main.execute("var = 2a").trim().toLowerCase();
+                        if (!output.startsWith("invalid")) {
+                            return CheckResult.wrong("The value can be an integer number or a value of another variable");
+                        }
+
+                        // testing multiple equalization
+                        output = main.execute("c = 7 - 1 = 5").trim().toLowerCase();
+                        if (!output.startsWith("invalid")) {
+                            return CheckResult.wrong("The program could not handle a invalid assignment.");
+                        }
+
+                        // testing assignment by unassigned variable
+                        output = main.execute("variable = f").trim().toLowerCase();
+                        if (!(output.startsWith("unknown") || output.startsWith("invalid"))) {
+                            return CheckResult.wrong("The program should not allow an assignment by unassigned variable.");
+                        }
+
+                        // checking case sensitivity
+                        main.execute("variable = 777");
+                        output = main.execute("Variable").trim().toLowerCase();
+                        if (!output.startsWith("unknown")) {
+                            return CheckResult.wrong("The program should be case sensitive.");
+                        }
+
+                        // checking case sensitivity
+                        main.execute("variable = 777");
+                        output = main.execute("Variable").trim().toLowerCase();
+                        if (!output.startsWith("unknown")) {
+                            return CheckResult.wrong("The program should be case sensitive.");
+                        }
+
+                        // test of /exit
+                        output = main.execute("/exit").trim().toLowerCase();
+                        if (!output.startsWith("bye")) {
+                            return CheckResult.wrong("Your program didn't print \"bye\" after entering \"/exit\".");
+                        }
+
+                        return new CheckResult(main.isFinished(), "Your program should exit after entering \"/exit\".");
+                    }),
+                    new TestCase<String>().setDynamicTesting(() -> {
+                        TestedProgram main = new TestedProgram();
+
+                        // A test suit for multiplication and division
+                        main.start();
+
+                        String output = main.execute("4 * 3").trim();
+                        if (!output.equals("12")) {
+                            return CheckResult.wrong("The program has problems with multiplication operation.");
+                        }
+
+                        output = main.execute("91 / 13").trim();
+                        if (!output.equals("7")) {
+                            return CheckResult.wrong("The program has problems with division operation.");
+                        }
+
+                        // testing all operators
+                        main.execute(" a= 7 \n b =2");
+                        output = main.execute("a * 4 / b - (3 - 1)").trim();
+                        if (!output.equals("12")) {
+                            return CheckResult.wrong("The program cannot correctly process several operations.");
+                        }
+
+                        // test of /exit
+                        output = main.execute("/exit").trim().toLowerCase();
+                        if (!output.startsWith("bye")) {
+                            return CheckResult.wrong("Your program didn't print \"bye\" after entering \"/exit\".");
+                        }
+
+                        return new CheckResult(main.isFinished(), "Your program should exit after entering \"/exit\".");
+                    }),
+                    new TestCase<String>().setDynamicTesting(() -> {
+                        TestedProgram main = new TestedProgram();
+
+                        // testing priority of parentheses
+                        main.start();
+
+                        // expression from the example
+                        String output = main.execute("7 + 3 * ((4 + 3) * 7 + 1) - 6 / (2 + 1)").trim();
+                        if (!output.equals("155")) {
+                            return CheckResult.wrong("The program cannot reproduce an example from the task.");
+                        }
+
+    //                    // test case with a big amount of brackets
+    //                    output = main.execute("3 + (9 + ( 68 * 3/9)) * ((7-2 * 5) / 2) * 6").trim();
+    //                    if (!output.equals("-282")) {
+    //                        return CheckResult.wrong("Program incorrectly solves expressions with multi-level parentheses");
+    //                    }
+
+                        // test of /exit
+                        output = main.execute("/exit").trim().toLowerCase();
+                        if (!output.startsWith("bye")) {
+                            return CheckResult.wrong("Your program didn't print \"bye\" after entering \"/exit\".");
+                        }
+
+                        return new CheckResult(main.isFinished(), "Your program should exit after entering \"/exit\".");
+                    }),
+                    new TestCase<String>().setDynamicTesting(() -> {
+                        TestedProgram main = new TestedProgram();
+
+                        // a set of negative tests
+                        main.start();
+
+                        // tests with unclosed brackets
+                        String output = main.execute("8 * (2 + 3").trim().toLowerCase();
+                        String output1 = main.execute("4 + 5)").trim().toLowerCase();
+                        if (!output.startsWith("invalid") || !output1.startsWith("invalid")) {
+                            return CheckResult.wrong("The program could not handle an invalid expression.");
+                        }
+
+                        // sequence of * test
+                        output = main.execute("2 ************ 2").trim().toLowerCase();
+                        if (!output.startsWith("invalid")) {
+                            return CheckResult.wrong("A sequence of \"*\" should return \"Invalid expression\".");
+                        }
+
+                        // sequence of / test
+                        output = main.execute("2 // 2").trim().toLowerCase();
+                        if (!output.startsWith("invalid")) {
+                            return CheckResult.wrong("A sequence of \"/\" should return \"Invalid expression\".");
+                        }
+
+                        // test of /exit
+                        output = main.execute("/exit").trim().toLowerCase();
+                        if (!output.startsWith("bye")) {
+                            return CheckResult.wrong("Your program didn't print \"bye\" after entering \"/exit\".");
+                        }
+
+                        return new CheckResult(main.isFinished(), "Your program should exit after entering \"/exit\".");
+                    }),
+                    new TestCase<String>().setDynamicTesting(() -> {
+                        TestedProgram main = new TestedProgram();
+
+                        // test suit for the 8th stage with very large numbers
+                        main.start();
+
+                        // testing basic assignment
+                        String output = main.execute("n = 32000000000000000000");
+                        if (output.length() != 0) {
+                            return CheckResult.wrong("Unexpected reaction after assignment." +
+                                    "The program should not print anything in this case.");
+                        }
+
+                        // testing a big amount of numbers
+                        output = main.execute("33000000000000000000 + 20000000000000000000 + 11000000000000000000 + " +
+                                "49000000000000000000 - 32000000000000000000 - 9000000000000000000 " +
+                                "+ 1000000000000000000 - 80000000000000000000 + 4000000000000000000 + 1").trim();
+                        if (!output.equals("-2999999999999999999")) {
+                            return CheckResult.wrong("The program cannot process addition and subtraction operations correctly.");
+                        }
+
+                        // the same with a variable
+                        output = main.execute(
+                            "33000000000000000000 + 20000000000000000000 + 11000000000000000000 + " +
+                                "49000000000000000000 - n - 9000000000000000000 " +
+                                "+ 1000000000000000000 - 80000000000000000000 + 4000000000000000000 + 1").trim();
+                        if (!output.equals("-2999999999999999999")) {
+                            return CheckResult.wrong(
+                                "The program cannot process addition " +
+                                    "and subtraction operations correctly.");
+                        }
+
+                        // testing reassignment with big values
+                        output = main.execute("c = n \nc = 2000000000000000000000");
+                        if (output.length() != 0) {
+                            return CheckResult.wrong("Unexpected reaction after assignment." +
+                                    "The program should not print anything in this case.");
+                        }
+
+                        // check value
+                        output = main.execute("  c   ").trim();
+                        if (!output.equals("2000000000000000000000")) {
+                            return CheckResult.wrong("The variable stores not a correct value." +
+                                    "May be the program could not assign the value of one variable to another one.");
+                        }
+
+                        // the sum of the numbers is zero
+                        output = main.execute("11000000000000000000 - 9000000000000000000 - " +
+                                "c + 1998000000000000000000").trim();
+                        if (!output.equals("0")) {
+                            return CheckResult.wrong("The problem when sum is equal to 0 has occurred.");
+                        }
+
+                        // test of multiple operations
+                        output = main.execute("5000000000000000000 --- 2000000000000000000 " +
+                                "++++++ 4000000000000000000 -- 2000000000000000000 ---- 1000000000000000000").trim();
+                        if (!output.equals("10000000000000000000")) {
+                            return CheckResult.wrong("The program cannot process multiple operations with several operators.");
+                        }
+
+                        // testing all operators, with variables
+                        main.execute(" a= 7000000000000000000 \n b =2000000000000000000");
+                        output = main.execute("a * 4000000000000000000 / " +
+                                "b - (3000000000000000000 - 1000000000000000000)").trim();
+                        if (!output.equals("12000000000000000000")) {
+                            return CheckResult.wrong("The program cannot correctly process several operations.");
+                        }
+
+                        // test of /exit
+                        output = main.execute("/exit").trim().toLowerCase();
+                        if (!output.startsWith("bye")) {
+                            return CheckResult.wrong("Your program didn't print \"bye\" after entering \"/exit\".");
+                        }
+
+                        return new CheckResult(main.isFinished(), "Your program should exit after entering \"/exit\".");
+                    })
+
+            );
+        }
+    }
+  learner_created: false
+- name: src/calculator/Request.java
+  visible: true
+  text: |
+    package calculator;
+
+    public enum Request {
+        CONTINUE(null, null),
+        UNKNOWN_COMMAND(null, Error.UNKNOWN_COMMAND.getMessage()),
+        EMPTY("", null),
+        HELP("/help", "The program will calculate expressions like these: 3 + 8 * ((4 + 3) * 2 + 1) - 6 / (2 + 1), and so on."),
+        EXIT("/exit", "Bye!");
+
+        String option;
+        String message;
+
+        Request(String option, String message) {
+            this.option = option;
+            this.message = message;
+        }
+
+        public static Request get(String input) {
+            for (Request r : Request.values()) {
+                if (input.equalsIgnoreCase(r.option)) {
+                    return r;
+                }
+            }
+
+            return input.startsWith("/") ? UNKNOWN_COMMAND : CONTINUE;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+    }
+  learner_created: true
+- name: src/calculator/Error.java
+  visible: true
+  text: |
+    package calculator;
+
+    public enum Error {
+        INVALID_IDENTIFIER("Invalid identifier"),
+        INVALID_ASSIGNMENT("Invalid assignment"),
+        INVALID_EXPRESSION("Invalid expression"),
+        UNKNOWN_VARIABLE("Unknown variable"),
+        UNKNOWN_COMMAND("Unknown command");
+
+        private final String message;
+
+        Error(String message) {
+            this.message = message;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+    }
+  learner_created: true
+- name: src/calculator/Calculator.java
+  visible: true
+  text: "package calculator;\n\nimport java.util.*;\nimport java.util.regex.Matcher;\n\
+    import java.util.regex.Pattern;\n\npublic class Calculator {\n    private final\
+    \ Map<String, Integer> PRECEDENCE = Map.of(\n            \"+\", 1,\n         \
+    \   \"-\", 1,\n            \"/\", 2,\n            \"*\", 2,\n            \"^\"\
+    , 3\n    );\n\n    private final Map<String, Integer> variables = new HashMap<>();\n\
+    \n    public void run() {\n        Scanner scanner = new Scanner(System.in);\n\
+    \        String input = scanner.nextLine().trim();\n        Request request =\
+    \ Request.get(input);\n\n        while (request != Request.EXIT) {\n         \
+    \       switch (request) {\n                    case HELP:\n                 \
+    \   case UNKNOWN_COMMAND:\n                        System.out.println(request.getMessage());\n\
+    \                        break;\n                    case CONTINUE:\n        \
+    \                try {\n                            if (isDigits(input) || isLetters(input))\
+    \ {\n                                System.out.println(getValue(input));\n  \
+    \                          } else if (input.contains(\"=\")) {\n             \
+    \                   processAssignment(input);\n                            } else\
+    \ {\n                                String postfix = prefixToPostfix(input);\n\
+    \                                System.out.println(processPostfix(postfix));\n\
+    \                            }\n                        } catch (RuntimeException\
+    \ e) {\n                            System.out.println(e.getMessage());\n    \
+    \                    }\n\n                        break;\n                }\n\n\
+    \            input = scanner.nextLine().trim();\n            request = Request.get(input);\n\
+    \        }\n\n        System.out.println(request.getMessage());\n    }\n\n   \
+    \ private void processAssignment(String input) {\n        String[] args = input.split(\"\
+    \\\\s*=\\\\s*\");\n\n        if (!isLetters(args[0])) {\n            throw new\
+    \ RuntimeException(Error.INVALID_IDENTIFIER.getMessage());\n        }\n\n    \
+    \    if (args.length > 2 || !isDigits(args[1]) && !isLetters(args[1])) {\n   \
+    \         throw new RuntimeException(Error.INVALID_ASSIGNMENT.getMessage());\n\
+    \        }\n\n        int value = getValue(args[1]);\n        variables.put(args[0],\
+    \ value);\n    }\n    \n    private int getValue(String input) {\n        int\
+    \ value;\n\n        try {\n            value = Integer.parseInt(input);\n    \
+    \    } catch (NumberFormatException e) {\n            value = getVariable(input);\n\
+    \        }\n\n        return value;\n    }\n\n    private int getVariable(String\
+    \ key) {\n        return Optional.ofNullable(variables.get(key)).orElseThrow(()\
+    \ ->\n                new RuntimeException(Error.UNKNOWN_VARIABLE.getMessage()));\n\
+    \    }\n\n    private String prefixToPostfix(String input) {\n        final String\
+    \ INVALID_INPUT = \"(?i)((/(?=/))|(\\\\*(?=\\\\*))|(\\\\^(?=\\\\^))|[a-z]+\\\\\
+    d|\\\\d[a-z]+|[^ a-z()^\\\\d/*+-])\";\n\n        if (input.matches(INVALID_INPUT))\
+    \ {\n            throw new RuntimeException(Error.INVALID_EXPRESSION.getMessage());\n\
+    \        }\n\n        final String QUERY = \"(?i)([a-z]+|(?<=^|\\\\s|\\\\(|\\\\\
+    ^)-?\\\\d+|\\\\d+|\\\\++|-+|\\\\*|/|\\\\(|\\\\)|\\\\^)\";\n        Deque<String>\
+    \ stack = new ArrayDeque<>();\n        Matcher matcher = Pattern.compile(QUERY).matcher(input);\n\
+    \        StringBuilder postfix = new StringBuilder();\n\n        matcher.results().forEach(m\
+    \ -> {\n            if (isDigits(m.group()) || isLetters(m.group())) {\n     \
+    \           postfix.append(m.group()).append(\" \");\n            } else {\n \
+    \               if (\"(\".equals(m.group())) {\n                    stack.offerLast(m.group());\n\
+    \                } else if (\")\".equals(m.group())) {\n                    boolean\
+    \ foundPair = false;\n\n                    while (!stack.isEmpty() && !foundPair)\
+    \ {\n                        postfix.append(stack.pollLast()).append(\" \");\n\
+    \                        foundPair = \"(\".equals(stack.peekLast());\n       \
+    \             }\n\n                    if (!foundPair) {\n                   \
+    \     throw new RuntimeException(Error.INVALID_EXPRESSION.getMessage());\n   \
+    \                 }\n\n                    stack.pollLast();\n               \
+    \ } else {\n                    String operator = simplifyOperator(m.group());\n\
+    \n                    if (stack.isEmpty() || \"(\".equals(stack.peekLast()) ||\n\
+    \                            PRECEDENCE.get(operator) > PRECEDENCE.get(stack.peekLast()))\
+    \ {\n                        stack.offerLast(operator);\n                    }\
+    \ else if (PRECEDENCE.get(operator) <= PRECEDENCE.get(stack.peekLast())) {\n \
+    \                       while (!stack.isEmpty() && !\"(\".equals(stack.peekLast())\
+    \ &&\n                                PRECEDENCE.get(operator) <= PRECEDENCE.get(stack.peekLast()))\
+    \ {\n                            postfix.append(stack.pollLast()).append(\" \"\
+    );\n                        }\n\n                        stack.offerLast(operator);\n\
+    \                    }\n                }\n            }\n        });\n\n    \
+    \    while (!stack.isEmpty()) {\n            postfix.append(stack.pollLast()).append(\"\
+    \ \");\n        }\n\n        return postfix.toString().trim();\n    }\n\n    private\
+    \ int processPostfix(String input) {\n        String[] values = input.split(\"\
+    \\\\s+\");\n        Deque<Integer> stack = new ArrayDeque<>();\n\n        for\
+    \ (String v: values) {\n            if (isDigits(v) || isLetters(v)) {\n     \
+    \           stack.offerLast(getValue(v));\n            } else {\n            \
+    \    int num1 = Optional.ofNullable(stack.pollLast())\n                      \
+    \  .orElseThrow(() -> new RuntimeException(Error.INVALID_EXPRESSION.getMessage()));\n\
+    \n                int num2 = Optional.ofNullable(stack.pollLast())\n         \
+    \               .orElseThrow(() -> new RuntimeException(Error.INVALID_EXPRESSION.getMessage()));\n\
+    \n                switch (v) {\n                    case \"+\":\n            \
+    \            stack.offerLast(num2 + num1);\n                        break;\n \
+    \                   case \"-\":\n                        stack.offerLast(num2\
+    \ - num1);\n                        break;\n                    case \"*\":\n\
+    \                        stack.offerLast(num2 * num1);\n                     \
+    \   break;\n                    case \"/\":\n                        stack.offerLast(num2\
+    \ / num1);\n                        break;\n                    case \"^\":\n\
+    \                        stack.offerLast((int) Math.pow(num2, num1));\n      \
+    \                  break;\n                    default:\n                    \
+    \    throw new RuntimeException(Error.INVALID_EXPRESSION.getMessage());\n    \
+    \            }\n            }\n        }\n\n        return Optional.ofNullable(stack.pollLast())\n\
+    \                .orElseThrow(() -> new RuntimeException(Error.INVALID_EXPRESSION.getMessage()));\n\
+    \    }\n\n    private boolean isDigits(String value) {\n        final String NUMBER\
+    \ = \"^-?\\\\d+$\";\n\n        return value.matches(NUMBER);\n    }\n\n    private\
+    \ boolean isLetters(String value) {\n        final String LETTERS = \"(?i)^[a-z]+$\"\
+    ;\n\n        return value.matches(LETTERS);\n    }\n\n    private String simplifyOperator(String\
+    \ op) {\n        final String MULTI_ADD = \"^\\\\+{2,}$\";\n        final String\
+    \ MULTI_SUB = \"^-{2,}$\";\n        final String OPERATOR = \"^([*/^+-])$\";\n\
+    \n        if (op.matches(OPERATOR)) {\n            return op;\n        } else\
+    \ if (op.matches(MULTI_ADD)) {\n            return \"+\";\n        } else if (op.matches(MULTI_SUB))\
+    \ {\n            return op.length() % 2 == 0 ? \"+\" : \"-\";\n        } else\
+    \ {\n            throw new RuntimeException(Error.INVALID_EXPRESSION.getMessage());\n\
+    \        }\n    }\n}"
+  learner_created: true
+feedback_link: https://hyperskill.org/projects/42/stages/227/implement#comment
+status: Solved
+feedback:
+  message: Well done! You've finished the project. Select a new project on <a href="https://hyperskill.org/projects">JetBrains
+    Academy</a> to continue learning.
+  time: Sun, 12 Sep 2021 00:59:00 UTC
+record: -1
